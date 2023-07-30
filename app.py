@@ -48,6 +48,9 @@ with tab_file:
     if st.button("Load File"):
         if not save_unpacked.exists():
             process_unpack(save_file, path_unpacked)
+            st.text("Loaded new file")
+        else:
+            st.text("Loaded existing file")
 
 
 with tab_advanced:
