@@ -1,0 +1,7 @@
+# Ignore dot folders
+.venv/
+.vscode/
+
+data/
+
+*.pyc

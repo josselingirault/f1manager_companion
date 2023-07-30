@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "f1manager-db-editor"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.25.0"
+pandas = "^2.0.3"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+pre-commit = "^3.3.3"
+mypy = "^1.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
