@@ -35,7 +35,7 @@ with tab_file:
     if not path.exists():
         st.warning(f"Folder does not exist: {path}")
         st.stop()
-    save_file = st.selectbox("Select Save File", sorted(path.glob("*")))
+    save_file = st.selectbox("Select Save File", sorted(path.glob("*.sav")))
     if not save_file:
         st.stop()
     path_unpacked = path / f"{save_file.stem}_unpacked"
@@ -43,7 +43,8 @@ with tab_file:
     save_unpacked = path_unpacked / "main.db"
     if save_unpacked.exists():
         st.warning(
-            "You are about to override a previously unpacked save file, consider renaming the new file to avoid losing data"
+            "You are about to override a previously unpacked save file, consider "
+            "renaming the new file to avoid losing data"
         )
     if st.button("Load File"):
         process_unpack(save_file, path_unpacked)
@@ -53,7 +54,8 @@ with tab_file:
         new_save_file = st.text_input("New file", value=save_file)
         if new_save_file == str(save_file):
             st.warning(
-                "You are about to override the original save file, consider renaming the file to avoid losing data"
+                "You are about to override the original save file, consider "
+                "renaming the file to avoid losing data"
             )
         if st.button("Save File"):
             process_repack(path_unpacked, new_save_file)

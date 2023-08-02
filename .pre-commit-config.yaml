@@ -5,10 +5,28 @@ repos:
     -   id: check-yaml
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
+-   repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.10.0
+    hooks:
+    -   id: pretty-format-toml
+        args: [--autofix, --indent, '4']
+    -   id: pretty-format-yaml
+        args: [--autofix, --indent, '4']
 -   repo: local
     hooks:
     -   id: black
         name: black
         entry: poetry run black
+        language: system
+        types: [python]
+    -   id: ruff
+        name: ruff
+        entry: poetry run ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        language: system
+        types: [python]
+    -   id: mypy
+        name: mypy
+        entry: poetry run mypy
         language: system
         types: [python]

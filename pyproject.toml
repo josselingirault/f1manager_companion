@@ -1,21 +1,30 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.mypy]
+no_warn_no_return = true
+python_version = 3.11
+warn_return_any = true
+
 [tool.poetry]
-name = "f1manager-db-editor"
-version = "0.1.0"
-description = ""
 authors = ["Your Name <you@example.com>"]
+description = ""
+name = "f1manager-db-editor"
+packages = [
+    {include = "src"}
+]
 readme = "README.md"
+version = "0.1.0"
 
 [tool.poetry.dependencies]
+pandas = "^2.0.3"
 python = "^3.11"
 streamlit = "^1.25.0"
-pandas = "^2.0.3"
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
-pre-commit = "^3.3.3"
 mypy = "^1.4.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+pandas-stubs = "^2.0.2.230605"
+pre-commit = "^3.3.3"
+ruff = "^0.0.282"
