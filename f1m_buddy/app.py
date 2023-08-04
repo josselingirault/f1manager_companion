@@ -4,22 +4,13 @@ import sqlite3
 import pathlib as pl
 from src.unpacking import process_unpack, process_repack
 
-st.title("JoyA's F1Manager Buddy")
+# from src.tester import do_testing
+from src.buddy import init_buddy, init_sidebar
 
-activities = {0: "Playing", 1: "Editing the DB", 2: "Testing stuff"}
-st.session_state.activity = st.selectbox(
-    "What are we doing ?", activities, format_func=lambda x: activities[x]
-)
 
-activity = st.session_state.activity
+init_sidebar()
+init_buddy()
 
-match activity:
-    case 0:
-        pass
-    case 1:
-        pass
-    case 2:
-        pass
 
 with st.expander("How does it work?"):
     st.markdown(
@@ -75,7 +66,6 @@ with tab_file:
         if st.button("Save File"):
             process_repack(path_unpacked, new_save_file)
             st.success(f"Repacked save to {new_save_file}")
-
 
 with tab_advanced:
     if not save_unpacked.exists():

@@ -12,18 +12,20 @@ authors = ["Your Name <you@example.com>"]
 description = ""
 name = "f1manager-db-editor"
 packages = [
-    {include = "src/"}
+    {include = "src/", from = "f1m_buddy/src"}
 ]
 readme = "README.md"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
 pandas = "^2.0.3"
+pendulum = "^2.1.2"
 python = "^3.11"
 streamlit = "^1.25.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
+ipython = "^8.14.0"
 mypy = "^1.4.1"
 pandas-stubs = "^2.0.2.230605"
 pre-commit = "^3.3.3"

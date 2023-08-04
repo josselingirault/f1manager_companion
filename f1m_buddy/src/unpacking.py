@@ -1,4 +1,4 @@
-# Shamelessly stolen from F1-Manager-2022-SaveFile-Repacker
+# Shamelessly stolen from https://github.com/xAranaktu/F1-Manager-2022-SaveFile-Repacker
 
 import argparse
 import os
