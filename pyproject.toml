@@ -12,7 +12,7 @@ authors = ["Your Name <you@example.com>"]
 description = ""
 name = "f1manager-db-editor"
 packages = [
-    {include = "src"}
+    {include = "src/"}
 ]
 readme = "README.md"
 version = "0.1.0"
@@ -28,3 +28,7 @@ mypy = "^1.4.1"
 pandas-stubs = "^2.0.2.230605"
 pre-commit = "^3.3.3"
 ruff = "^0.0.282"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"

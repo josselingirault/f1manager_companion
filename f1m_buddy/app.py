@@ -4,7 +4,22 @@ import sqlite3
 import pathlib as pl
 from src.unpacking import process_unpack, process_repack
 
-st.title("F1Manager 2023 Database Editor")
+st.title("JoyA's F1Manager Buddy")
+
+activities = {0: "Playing", 1: "Editing the DB", 2: "Testing stuff"}
+st.session_state.activity = st.selectbox(
+    "What are we doing ?", activities, format_func=lambda x: activities[x]
+)
+
+activity = st.session_state.activity
+
+match activity:
+    case 0:
+        pass
+    case 1:
+        pass
+    case 2:
+        pass
 
 with st.expander("How does it work?"):
     st.markdown(
@@ -29,7 +44,7 @@ with tab_file:
     # Select file
     path_str = st.text_input(
         "F1Manager Save Files Location",
-        value="C:\\Users\\<yourname>\\AppData\\Local\\F1Manager23\\Saved\\SaveGames",
+        value="/usr/home/project/saves",
     )
     path: pl.Path = pl.Path(path_str)
     if not path.exists():
