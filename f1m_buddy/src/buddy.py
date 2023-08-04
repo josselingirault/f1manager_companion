@@ -1,8 +1,10 @@
-import streamlit as st
 import typing as tp
 from dataclasses import dataclass, field
-import src.constants as cst
 from pathlib import Path
+
+import streamlit as st
+
+import src.constants as cst
 
 
 @dataclass

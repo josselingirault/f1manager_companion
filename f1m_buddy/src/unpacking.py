@@ -1,11 +1,11 @@
 # Shamelessly stolen from https://github.com/xAranaktu/F1-Manager-2022-SaveFile-Repacker
 
 import argparse
-import os
-import zlib
-import struct
 import mmap
+import os
 import pathlib as pl
+import struct
+import zlib
 
 CHNUK1_NAME = "chunk1"
 MAIN_DB_NAME = "main.db"

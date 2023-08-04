@@ -1,12 +1,12 @@
-import streamlit as st
-import pandas as pd
-import sqlite3
 import pathlib as pl
-from src.unpacking import process_unpack, process_repack
+import sqlite3
+
+import pandas as pd
+import streamlit as st
 
 # from src.tester import do_testing
 from src.buddy import init_buddy, init_sidebar
-
+from src.unpacking import process_repack, process_unpack
 
 init_sidebar()
 init_buddy()
