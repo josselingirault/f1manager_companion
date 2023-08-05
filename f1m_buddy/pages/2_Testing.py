@@ -3,6 +3,7 @@
 import tempfile
 import typing as tp
 
+import pandas as pd
 import streamlit as st
 from src.buddy import init_buddy, init_sidebar
 from src.constants import PATH_BUDDY_SAVES
@@ -10,11 +11,13 @@ from src.types import Generic, SaveName
 from src.utils import load_db_tables, load_save_file
 
 
-def selectbox_with_default(label: str, values: tp.Iterable[Generic]) -> Generic | None:
+def selectbox_with_default(
+    label: str, values: tp.Iterable[Generic], default=None, default_display="<select>"
+) -> Generic | None:
     return st.selectbox(
         label,
-        (None, *values),
-        format_func=lambda x: "<select>" if x is None else x,
+        (default, *values),
+        format_func=lambda x: default_display if x is None else x,
     )
 
 
@@ -34,12 +37,15 @@ def filter_saves(save_type: tp.Literal["test", "career_"]) -> tp.Set[SaveName]:
     return selected_saves  # type: ignore
 
 
-def load_tables_from_saves(selected_saves: tp.Iterable[SaveName]):
+def load_tables_from_saves(
+    selected_saves: tp.Iterable[SaveName],
+) -> tp.Dict[str, pd.DataFrame]:
     """Load a defined set of tables from all selected saves."""
     fixed_tables = (
         "Races",
         "Races_Tracks",
         "Staff_BasicData",
+        "Staff_DriverData",
         "Staff_Contracts",
         "Teams",
     )
@@ -59,8 +65,13 @@ def load_tables_from_saves(selected_saves: tp.Iterable[SaveName]):
         return load_db_tables(db_files, tables, fixed_tables)
 
 
-def save_type_loader():
-    with st.expander("Select the saves to analyze"):
+def save_type_loader() -> tp.Dict[str, pd.DataFrame]:
+    """Create the layout for save selection.
+
+    Returns:
+        selected data tables
+    """
+    with st.expander("Select the saves to load"):
         save_type = pick_save_type()
         if save_type is None:
             st.stop()
@@ -75,118 +86,68 @@ init_buddy()
 
 
 st.title("Analyze testing results")
+if st.session_state.display_help:
+    with st.expander("How does it work?"):
+        st.markdown(
+            """
+            1. Select whether you want to look at test or career saves
+            2. Pick filters to use
+            """
+        )
 
 dataframes = save_type_loader()
 
+st.header("Analysis")
+
+
+# st.subheader("Select the saves to analyze")
+# save_names: tp.Iterable[SaveName] = dataframes["Player"]["DBFile"]  # type: ignore
+# checkboxes = {save_name: st.checkbox(save_name) for save_name in sorted(save_names)}
+# for save_name, check in checkboxes.items():
+
+
+player = dataframes["Player"][["TeamID", "UniqueSeed"]]
+teams = dataframes["Teams"][["TeamID", "TeamName"]]
+drivers = dataframes["Staff_DriverData"][["StaffID"]]
+contracts = dataframes["Staff_Contracts"][["TeamID", "StaffID", "PosInTeam"]]
+humans = dataframes["Staff_BasicData"][["StaffID", "FirstName", "LastName"]]
+
+your_drivers = (
+    player.merge(teams, on="TeamID")
+    .merge(contracts, on="TeamID")
+    .merge(humans, on="StaffID")
+    .merge(drivers, on="StaffID")
+)
+your_drivers["CarIndex"] = (
+    (your_drivers["TeamID"] - 1) * 2 + your_drivers["PosInTeam"] - 1
+)
+your_drivers = your_drivers[your_drivers["PosInTeam"] < 3]
+
+weekend = dataframes["Save_Weekend"][["RaceID"]]
+races = dataframes["Races"][["RaceID", "TrackID"]]
+tracks = dataframes["Races_Tracks"][["TrackID", "Name"]]
+
+
+def extract_name(series: pd.Series) -> pd.Series:
+    """Extract 'Charles' from '[StaffName_Forename_Male_Charles]'."""
+    return series.str.strip("[|]").str.split("_").str[-1]
+
+
+your_drivers["FullName"] = (
+    extract_name(your_drivers["FirstName"])
+    + " "
+    + extract_name(your_drivers["LastName"])
+)
+
+st.dataframe(your_drivers, hide_index=True)
+your_drivers = your_drivers[["CarIndex", "FullName", "TeamName"]]
+
+race_info = weekend.merge(races, on="RaceID").merge(tracks, on="TrackID")
+
+
+st.dataframe(your_drivers, hide_index=True)
+st.dataframe(race_info, hide_index=True)
 with st.expander("dev"):
     st.info(sorted(dataframes.keys()))
 
-
-# class SaveFile(tp.TypedDict):
-#     filepath: Path
-#     modified: float
-
-
-# def list_save_files() -> tp.List[SaveFile]:
-#     """_summary_"""
-#     save_files: tp.List[SaveFile] = sorted(
-#         [
-#             {"filepath": x, "modified": x.stat().st_mtime}
-#             for x in PATH_SAVES.glob("*.sav")
-#         ],
-#         key=lambda x: x["modified"],
-#         reverse=True,
-#     )
-#     st.info(f"Listed {len(save_files)} save files.")
-#     return save_files
-
-
-# def format_savefile_name(savefile: SaveFile) -> str:
-#     """"""
-#     return str(
-#         pendulum.from_timestamp(savefile["modified"]).to_datetime_string()
-#         + ", "
-#         + savefile["filepath"].stem
-#     )
-
-
-# init_sidebar()
-# init_buddy()
-
-# st.title("Import Save Files")
-# if st.session_state.display_help:
-#     with st.expander("How does it work?"):
-#         st.markdown(
-#             """
-#             1. Do whatever you want in an F1Manager race
-#             2. Before the end of the race, save your game
-#             3. Click on the import save button
-#             """
-#         )
-
-# selected_save = st.selectbox(
-#     "Pick save file to import",
-#     list_save_files(),
-#     format_func=lambda x: format_savefile_name(x),
-# )
-# if not selected_save:
-#     st.stop()
-
-
-# def format_data_name(sql_conn: sqlite3.Connection) -> str:
-#     """_summary_
-
-#     Args:
-#         sql_conn: _description_
-
-#     Returns:
-#         _description_
-#     """
-#     rows = pd.read_sql_query(
-#         "SELECT * FROM Player AS p JOIN Teams AS t ON p.TeamID = t.TeamID", sql_conn
-#     )
-#     row = rows.iloc[0]
-#     character_name = (
-#         "test"
-#         if row["FirstName"] == "[TEAMPRINCIPAL_TEAM]"
-#         else str("career_" + row["FirstName"] + "_" + row["LastName"])
-#     )
-#     team = row["TeamName"]
-#     seed = str(row["UniqueSeed"])
-#     row = pd.read_sql_query("SELECT * FROM Player_State", sql_conn).iloc[0]
-#     day = str(row["Day"])
-#     season = str(row["CurrentSeason"])
-#     try:
-#         row = pd.read_sql_query(
-#             "SELECT * FROM Save_Weekend AS w JOIN Races AS r ON w.RaceID = r.RaceID "
-#             "JOIN Races_Tracks AS t ON r.TrackID = t.TrackID",
-#             sql_conn,
-#         ).iloc[0]
-#         track = row["Name"]
-
-#         session = str(row["WeekendStage"])
-#         return "__".join([character_name, team, day, season, track, session, seed])
-#     except IndexError:
-#         return "__".join([character_name, team, day, season, seed])
-
-
-# if st.button("Import File"):
-#     with tempfile.TemporaryDirectory() as tmp_dir_str:
-#         tmp_dir = Path(tmp_dir_str)
-#         process_unpack(selected_save["filepath"], tmp_dir)
-#         db_unpacked = tmp_dir / "main.db"
-#         sql_conn = sqlite3.connect(db_unpacked)
-#         data_name = format_data_name(sql_conn)
-
-#     new_save_path = PATH_BUDDY_SAVES / f"{data_name}.sav"
-#     if new_save_path.exists():
-#         st.warning(
-#             f"Save file {new_save_path.stem} already exists, delete it manually if
-# you"
-#             "want to replace it."
-#         )
-#         st.stop()
-#     copyfile(selected_save["filepath"], new_save_path)
-#     st.success(f"Copied save file to {new_save_path}")
-#     new_data_path = PATH_BUDDY_DATA / data_name
-#     new_data_path.mkdir()
+st.dataframe(dataframes["Player"], hide_index=True)
