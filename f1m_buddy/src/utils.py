@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.constants import PATH_BUDDY_SAVES
+from src.constants import PATH_BUDDY_TEST
 from src.types import SaveName
 from src.unpacking import process_unpack
 
 
 def load_save_file(save_name: SaveName, tmp_dir_str: str) -> Path:
-    save_path = (PATH_BUDDY_SAVES / save_name).with_suffix(".sav")
+    save_path = (PATH_BUDDY_TEST / save_name).with_suffix(".sav")
     tmp_dir = Path(tmp_dir_str)
     process_unpack(save_path, tmp_dir)
     return (tmp_dir / "main.db").rename((tmp_dir / save_name).with_suffix(".db"))
