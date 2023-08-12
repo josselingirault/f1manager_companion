@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from common.constants import PATH_COMPANION_TEST
-from common.unpacking import process_unpack
+from common.xaranaktu.unpacking import process_unpack
 
 
 def load_save_file(save_name: str, tmp_dir_str: str) -> Path:
