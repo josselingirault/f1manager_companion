@@ -5,11 +5,12 @@ import pandas as pd
 import streamlit as st
 
 # from src.tester import do_testing
-from src.buddy import init_buddy, init_sidebar
-from src.unpacking import process_repack, process_unpack
+from common.initialize import init_paths, init_sidebar
+
+from f1m_companion.common.xaranaktu.unpacking import process_repack, process_unpack
 
 init_sidebar()
-init_buddy()
+init_paths()
 
 
 with st.expander("How does it work?"):

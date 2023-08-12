@@ -1,36 +1,15 @@
-import sqlite3
-import tempfile
 import typing as tp
 from dataclasses import dataclass
-from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-
-# from src.tester import do_testing
-from src.buddy import init_buddy, init_sidebar
-from src.constants import PATH_BUDDY_SAVES
-from src.unpacking import process_unpack
-
-Generic = tp.TypeVar("Generic")
+from common.components import selectbox_with_default
+from common.initialize import init_sidebar
+from common.savefile import CompanionSaveFile
 
 st.set_page_config(layout="wide")
 
 init_sidebar()
-init_buddy()
-
-
-def load_save_file(save_name: str, tmp_dir_str: str) -> Path:
-    """Get a .sav file and unpack it to a .db file."""
-    save_path = (PATH_BUDDY_SAVES / save_name).with_suffix(".sav")
-    tmp_dir = Path(tmp_dir_str)
-    process_unpack(save_path, tmp_dir)
-    return (tmp_dir / "main.db").rename((tmp_dir / save_name).with_suffix(".db"))
-
-
-def list_tables(conn: sqlite3.Connection) -> tp.List[str]:
-    df = pd.read_sql_query('SELECT name from sqlite_master where type= "table";', conn)
-    return sorted(df["name"])
 
 
 def extract_name(series: pd.Series) -> pd.Series:
@@ -119,79 +98,70 @@ def translate_db_ids(
     return TranslatedTable(dataframe.sort_values(id_columns), tmp_cols, id_cols)
 
 
-def selectbox_with_default(
-    label: str,
-    values: tp.Iterable[Generic],
-    default=None,
-    default_display="<select>",
-) -> Generic:
-    """_summary_
-
-    Args:
-        label: _description_
-        values: _description_
-        default: _description_. Defaults to None.
-        default_display: _description_. Defaults to "<select>".
-
-    Returns:
-        _description_
-    """
-    key = hash(label)
-    if key not in st.session_state:
-        st.session_state[key] = None
-    default = st.session_state[key]
-    st.session_state[key] = st.selectbox(
-        label,
-        (default, *sorted(list(values))),
-        format_func=lambda x: default_display if x is None else x,
-    )
-    if st.session_state[key] is None:
-        st.stop()
-    return st.session_state[key]
-
-
 # Page script
 with st.expander("How does it work?"):
     st.markdown("""placeholder""")
 
-save_files = sorted(PATH_BUDDY_SAVES.glob("*.sav"))
+save_files = CompanionSaveFile.list_save_files()
+st.info(f"Listed {len(save_files)} save files in companion folder.")
+selected_save = selectbox_with_default("Select Save File to edit", save_files)
+if selected_save is None:
+    st.stop()
 
-selected_save_name = selectbox_with_default(
-    "Select Save File",
-    [x.stem for x in save_files],
+
+@st.cache_data()
+def translate_dataframe_ids(
+    dataframes: tp.Dict[str, pd.DataFrame]
+) -> tp.Dict[str, TranslatedTable]:
+    translated_dataframes: tp.Dict[str, TranslatedTable] = {}
+    for table_name in dataframes:
+        translated_dataframes[table_name] = translate_db_ids(dataframes, table_name)
+    return translated_dataframes
+
+
+# Only one unpacked save in the session_state at a time
+# If you navigate out the page then come back, must keep the changes, so:
+# We need to store the translated tables in the session_state
+# and load them from session_state only when
+# - there exist translated_dataframes in session_state
+# - the selected_save.name is the same as the save name in session_state
+
+translated_dataframes: tp.Dict[str, TranslatedTable]
+key_save_name = "key_save_name"
+key_translated_dataframes = "key_translated_dataframes"
+if (
+    key_translated_dataframes in st.session_state
+    and st.session_state[key_save_name] == selected_save.name
+):
+    translated_dataframes = st.session_state[key_translated_dataframes]
+else:
+    st.session_state[key_save_name] = selected_save.name
+    dataframes = selected_save.extract_dataframes()
+    translated_dataframes = translate_dataframe_ids(dataframes)
+
+selected_table_name = selectbox_with_default(
+    "Select Table to edit", translated_dataframes
 )
+if selected_table_name is None:
+    st.stop()
 
-key = hash(selected_save_name)
-if key not in st.session_state:
-    tmp_path = PATH_BUDDY_SAVES / "tmp"
-    for file in tmp_path.glob("*"):
-        file.unlink()
-
-    st.session_state[key] = True
-
-# Once save has been selected
-with tempfile.TemporaryDirectory() as tmp_dir_str:
-    db_file = load_save_file(selected_save_name, tmp_dir_str)
-    sql_conn = sqlite3.connect(db_file)
-    table_names = list_tables(sql_conn)
-    dataframes: tp.Dict[str, pd.DataFrame] = {}
-    for table_name in table_names:
-        df = pd.read_sql_query(f"SELECT * FROM {table_name}", sql_conn)
-        dataframes[table_name] = df
-
-selected_table = selectbox_with_default("Select Table", [x for x in table_names])
-
-ssk_table = hash(selected_table)
-if ssk_table not in st.session_state:
-    st.session_state[ssk_table] = translate_db_ids(dataframes, selected_table)
-
-st.session_state[ssk_table].dataframe = st.data_editor(
-    st.session_state[ssk_table].dataframe,
-    disabled=st.session_state[ssk_table].disabled_cols(),
+selected_table = translated_dataframes[selected_table_name]
+selected_table.dataframe = st.data_editor(
+    selected_table.dataframe,
+    disabled=selected_table.disabled_cols(),
     hide_index=True,
 )
+st.session_state[key_translated_dataframes] = translated_dataframes
 
-if st.button("Apply changes"):
-    dataframes[selected_table] = st.session_state[ssk_table].dataframe.drop(
-        columns=st.session_state[ssk_table].tmp_cols
-    )
+new_save_name = st.text_input(
+    "File name for the repacked save", selected_save.name + "_edited"
+)
+if st.button("Apply changes and repack file"):
+    cleaned_dataframes = {}
+    for table_name, tf_dataframe in translated_dataframes.items():
+        df = tf_dataframe.dataframe
+        cleaned_dataframes[table_name] = df.drop(
+            columns=[col for col in df.columns if col.startswith("TMP_")]
+        )
+    new_path = selected_save.repack(new_save_name, cleaned_dataframes)
+    st.success(f"Saved edited file to {new_path}")

@@ -12,7 +12,7 @@ authors = ["Your Name <you@example.com>"]
 description = ""
 name = "f1manager-db-editor"
 packages = [
-    {include = "src/", from = "f1m_buddy/src"}
+    {include = "common/", from = "f1m_companion/common"}
 ]
 readme = "README.md"
 version = "0.1.0"

@@ -1,10 +1,10 @@
 import streamlit as st
-from src.buddy import init_buddy, init_sidebar
+from common.initialize import init_paths, init_sidebar
 
 init_sidebar()
-init_buddy()
+init_paths()
 
-st.title("Home")
+st.title("Welcome to JoyA's F1Manager Companion")
 
 st.markdown(
     """1. Go to File Import, and import your save

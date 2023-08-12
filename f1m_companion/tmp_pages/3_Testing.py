@@ -5,13 +5,13 @@ import typing as tp
 
 import pandas as pd
 import streamlit as st
-from src.buddy import init_buddy, init_sidebar
-from src.constants import PATH_BUDDY_TEST
-from src.types import SaveName
-from src.utils import load_db_tables, load_save_file
+from common.constants import PATH_COMPANION_TEST
+from common.initialize import init_paths, init_sidebar
+from common.types import SaveName
+from common.utils import load_db_tables, load_save_file
 
 init_sidebar()
-init_buddy()
+init_paths()
 
 
 st.title("Analyze testing results")
@@ -52,7 +52,7 @@ def load_tables_from_saves(
 
 
 save_names: tp.List[SaveName] = [
-    save.stem for save in PATH_BUDDY_TEST.glob("*.sav")  # type: ignore
+    save.stem for save in PATH_COMPANION_TEST.glob("*.sav")  # type: ignore
 ]
 
 dataframes = load_tables_from_saves(save_names)
@@ -111,7 +111,7 @@ data = laps.merge(your_drivers, on="CarIndex")
 
 for save in data["DBFile"].unique():
     subdata: pd.DataFrame = data[data["DBFile"] == save]
-    subpath = PATH_BUDDY_TEST / f"{save}.csv"
+    subpath = PATH_COMPANION_TEST / f"{save}.csv"
     subdata.to_csv(subpath, index=False)
 
 

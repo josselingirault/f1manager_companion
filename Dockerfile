@@ -14,7 +14,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # poetry checks readme exists for some reason
 COPY pyproject.toml poetry.lock ${PROJECT_HOME}/
-COPY f1m_buddy/ ${PROJECT_HOME}/f1m_buddy/
+COPY f1m_companion/ ${PROJECT_HOME}/f1m_companion/
 
 RUN cd ${PROJECT_HOME} && \
     poetry config virtualenvs.in-project true && \
@@ -33,4 +33,4 @@ ENV PATH=${PROJECT_HOME}/.venv/bin:${PATH}
 WORKDIR ${PROJECT_HOME}
 EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
-ENTRYPOINT ["streamlit", "run", "f1m_buddy/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "f1m_companion/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]

@@ -5,10 +5,10 @@ import typing as tp
 
 import pandas as pd
 import streamlit as st
-from src.buddy import init_buddy, init_sidebar
-from src.constants import PATH_BUDDY_SAVES
-from src.types import Generic, SaveName
-from src.utils import load_db_tables, load_save_file
+from common.constants import PATH_COMPANION_SAVES
+from common.initialize import init_paths, init_sidebar
+from common.types import Generic, SaveName
+from common.utils import load_db_tables, load_save_file
 
 
 def selectbox_with_default(
@@ -23,7 +23,7 @@ def selectbox_with_default(
 
 def pick_save_type() -> tp.Literal["test", "career_"] | None:
     set_save_types: tp.Set[str] = set()
-    for save_path in PATH_BUDDY_SAVES.glob("*.sav"):
+    for save_path in PATH_COMPANION_SAVES.glob("*.sav"):
         set_save_types.add(save_path.stem.split("__")[0])
     save_type = selectbox_with_default(
         "You can only pick one save type at a time", set_save_types
@@ -32,7 +32,7 @@ def pick_save_type() -> tp.Literal["test", "career_"] | None:
 
 
 def filter_saves(save_type: tp.Literal["test", "career_"]) -> tp.Set[SaveName]:
-    selected_saves = {x.stem for x in PATH_BUDDY_SAVES.glob(f"{save_type}*.sav")}
+    selected_saves = {x.stem for x in PATH_COMPANION_SAVES.glob(f"{save_type}*.sav")}
     st.info(f"Selected saves: {selected_saves}")
     return selected_saves  # type: ignore
 
@@ -82,7 +82,7 @@ def save_type_loader() -> tp.Dict[str, pd.DataFrame]:
 
 
 init_sidebar()
-init_buddy()
+init_paths()
 
 
 st.title("Analyze testing results")
