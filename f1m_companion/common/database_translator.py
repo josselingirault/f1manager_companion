@@ -1,10 +1,12 @@
 """Helper class for handling translated tables in the editor."""
 import typing as tp
 from dataclasses import dataclass
+from pathlib import Path
 
 import pandas as pd
 
 from common.column_translators import column_translators
+from common.constants import PATH_COMPANION, PATH_COMPANION_TABLES
 
 
 @dataclass
@@ -73,11 +75,23 @@ class TranslatedDatabase:
             self.tables[table_name] = translate_db_ids(tables, table_name)
 
     def clean_tables(self) -> tp.Dict[str, pd.DataFrame]:
-        """Remove TMP_ columns."""
+        """Clean all tables in database."""
         clean_tables: tp.Dict[str, pd.DataFrame] = {}
-        for table_name, translated_table in self.tables.items():
-            table = translated_table.dataframe
-            clean_tables[table_name] = table.drop(
-                columns=[col for col in table.columns if col.startswith("TMP_")]
-            )
+        for table_name in self.tables:
+            clean_tables[table_name] = self.clean_table(table_name)
         return clean_tables
+
+    def clean_table(self, table_name: str) -> pd.DataFrame:
+        """Remove TMP_ columns from table."""
+        table = self.tables[table_name].dataframe
+        return table.drop(
+            columns=[col for col in table.columns if col.startswith("TMP_")]
+        )
+
+    def table_to_csv(self, table_name: str, folder_name: str) -> Path:
+        """Save edited table to csv file."""
+        folder_path = PATH_COMPANION_TABLES / folder_name
+        folder_path.mkdir(exist_ok=True)
+        path = (folder_path / table_name).with_suffix(".csv")
+        self.clean_table(table_name).to_csv(path, index=False)
+        return path.relative_to(PATH_COMPANION)

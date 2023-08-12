@@ -12,7 +12,7 @@ def selectbox_with_default(
     values: tp.Iterable[Generic],
     default: Generic | None = None,
     default_display: str = "<select>",
-) -> Generic | None:
+) -> Generic:
     """Add session state management and default value to selectbox.
 
     Args:
