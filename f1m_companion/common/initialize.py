@@ -15,5 +15,5 @@ def init_paths():
 def init_sidebar():
     """Initialize the pages with the sidebar."""
     with st.sidebar:
-        st.title("JoyA's F1Manager Companion")
+        st.title("Settings")
         st.session_state.display_help = st.checkbox("Display help", value=True)

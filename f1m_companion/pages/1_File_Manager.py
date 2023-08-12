@@ -10,14 +10,14 @@ from common.savefile import OriginalSaveFile
 
 init_sidebar()
 
-st.title("Import/Export Save Files")
+st.title("Import Save Files")
 if st.session_state.display_help:
     with st.expander("How does it work?"):
         st.markdown(
             """
-            1. Do whatever you want in an F1Manager race
-            2. Before the end of the race, save your game
-            3. Click on the import save button
+            1. Select the save file your want to import
+            2. Click on the import save file button
+            3. Companion renamed the file with a more explicit name
             """
         )
 
