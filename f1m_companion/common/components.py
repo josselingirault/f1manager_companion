@@ -1,4 +1,4 @@
-"""_summary_"""
+"""Custom Streamlit components."""
 
 import typing as tp
 
@@ -13,26 +13,27 @@ def selectbox_with_default(
     default: Generic | None = None,
     default_display: str = "<select>",
 ) -> Generic | None:
-    """_summary_
+    """Add session state management and default value to selectbox.
 
     Args:
-        label: _description_
-        values: _description_
-        default: _description_. Defaults to None.
-        default_display: _description_. Defaults to "<select>".
+        label: selectbox label
+        values: selectbox options
+        default: pre-selected option. Defaults to None.
+        default_display: pre-selected option display. Defaults to "<select>".
 
     Returns:
-        _description_
+        selectbox selection.
     """
     key = hash(label)
     if key not in st.session_state:
         st.session_state[key] = None
     default = st.session_state[key]
-    st.session_state[key] = st.selectbox(
+    selected = st.selectbox(
         label=label,
         options=(default, *sorted(values)),  # type: ignore
         format_func=lambda x: default_display if x is None else x,
     )
-    if st.session_state[key] is None:
+    st.session_state[key] = selected
+    if selected is None:
         st.stop()
-    return st.session_state[key]
+    return selected

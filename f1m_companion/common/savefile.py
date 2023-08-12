@@ -14,6 +14,7 @@ from common.xaranaktu.unpacking import process_repack, process_unpack
 
 class SaveFile(ABC):
     name: str
+    saves_path: Path
 
     def __init__(self, path: Path) -> None:
         self.path = path
@@ -26,6 +27,14 @@ class SaveFile(ABC):
 
     @contextmanager
     def unpack(self, target_dir: Path) -> tp.Generator[sqlite3.Connection, None, None]:
+        """Unpack save file and yield sqlite connection.
+
+        Args:
+            target_dir: unpack save file to dir
+
+        Yields:
+            sqlite connection to unpacked database.
+        """
         process_unpack(self.path, target_dir)
         save_unpacked = target_dir / "main.db"
         sql_conn = sqlite3.connect(save_unpacked)
@@ -34,12 +43,23 @@ class SaveFile(ABC):
         finally:
             sql_conn.close()
 
-    def repack(self, target_stem: str, dataframes: tp.Dict[str, pd.DataFrame]) -> Path:
+    def repack(self, target_stem: str, tables: tp.Dict[str, pd.DataFrame]) -> Path:
+        """Repack tables to target location.
+
+        Works by unpacking the original save file again, do not delete it !
+
+        Args:
+            target_stem: new save file name
+            tables: tables to repack
+
+        Returns:
+            relative path where save file was repacked.
+        """
         with tempfile.TemporaryDirectory() as tmp_dir_str:
             tmp_dir = Path(tmp_dir_str)
             with self.unpack(tmp_dir) as sql_conn:
-                for table_name, df in dataframes.items():
-                    df.to_sql(table_name, sql_conn, if_exists="replace", index=False)
+                for table_name, table in tables.items():
+                    table.to_sql(table_name, sql_conn, if_exists="replace", index=False)
                 sql_conn.commit()
                 new_path = (PATH_SAVES / target_stem).with_suffix(".sav")
                 process_repack(tmp_dir, new_path)
@@ -47,6 +67,14 @@ class SaveFile(ABC):
 
     @property
     def rich_name(self) -> str:
+        """Parse save file to generate a descriptive name for save.
+
+        format: <career_name>__<team>__<date>__<track>__<session>__<seed>
+        ex:     career_Bob_Morane__Alpine__2023-06-18__Barhein__9__14815
+
+        Returns:
+            rich name.
+        """
         with tempfile.TemporaryDirectory() as tmp_dir_str:
             with self.unpack(Path(tmp_dir_str)) as sql_conn:
                 query = (
@@ -66,7 +94,8 @@ class SaveFile(ABC):
                 )
                 try:
                     query = (
-                        "SELECT * FROM Save_Weekend AS w JOIN Races AS r ON w.RaceID = r.RaceID "
+                        "SELECT * FROM "
+                        "Save_Weekend AS w JOIN Races AS r ON w.RaceID = r.RaceID "
                         "JOIN Races_Tracks AS t ON r.TrackID = t.TrackID"
                     )
                     row = pd.read_sql_query(query, sql_conn).iloc[0]
@@ -77,7 +106,12 @@ class SaveFile(ABC):
                     elements = [save_type, team, day, "track", "session", seed]
         return "__".join(elements)
 
-    def extract_dataframes(self) -> tp.Dict[str, pd.DataFrame]:
+    def extract_tables(self) -> tp.Dict[str, pd.DataFrame]:
+        """Extract list of table names from save file.
+
+        Returns:
+            list of tables.
+        """
         with tempfile.TemporaryDirectory() as tmp_dir_str:
             with self.unpack(Path(tmp_dir_str)) as sql_conn:
                 df_tables = pd.read_sql_query(
@@ -85,19 +119,22 @@ class SaveFile(ABC):
                 )
                 table_names: tp.List[str] = sorted(df_tables["name"])
                 table_names.remove("sqlite_sequence")
-                dataframes: tp.Dict[str, pd.DataFrame] = {}
+                tables: tp.Dict[str, pd.DataFrame] = {}
                 for table_name in table_names:
                     df = pd.read_sql_query(f"SELECT * FROM {table_name}", sql_conn)
-                    dataframes[table_name] = df
-        return dataframes
+                    tables[table_name] = df
+        return tables
+
+    @classmethod
+    def list_save_files(cls) -> tp.List[tp.Self]:
+        """Instanciate a SaveFile for each save file found."""
+        return [cls(x) for x in cls.saves_path.glob("*.sav")]
 
 
 class OriginalSaveFile(SaveFile):
-    """Save files found in the F1Manager SaveGames folder.
+    """Save files found in the F1Manager SaveGames folder."""
 
-    Args:
-        SaveFile: _description_
-    """
+    saves_path = PATH_SAVES
 
     def __init__(self, path: Path) -> None:
         super().__init__(path)
@@ -108,24 +145,12 @@ class OriginalSaveFile(SaveFile):
             + self.path.stem
         )
 
-    @classmethod
-    def list_save_files(cls) -> tp.List[tp.Self]:
-        """Instanciate a SaveFile for each save file found."""
-        return [cls(x) for x in PATH_SAVES.glob("*.sav")]
-
 
 class CompanionSaveFile(SaveFile):
-    """Save files found in the Companion folder
+    """Save files found in the Companion folder."""
 
-    Args:
-        SaveFile: _description_
-    """
+    saves_path = PATH_COMPANION_SAVES
 
     def __init__(self, path: Path) -> None:
         super().__init__(path)
         self.name = self.path.stem
-
-    @classmethod
-    def list_save_files(cls) -> tp.List[tp.Self]:
-        """Instanciate a SaveFile for each save file found."""
-        return [cls(x) for x in PATH_COMPANION_SAVES.glob("*.sav")]

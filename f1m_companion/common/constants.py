@@ -1,4 +1,4 @@
-"""File with constants for the whole project"""
+"""Constants for the whole project."""
 
 from pathlib import Path
 

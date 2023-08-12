@@ -1,5 +1,4 @@
-"""_summary_"""
-
+"""Page for the File Manager."""
 
 from shutil import copyfile
 
@@ -28,14 +27,11 @@ selected_save = selectbox_with_default("Pick save file to import", save_files)
 if selected_save is None:
     st.stop()
 
+new_save_path = PATH_COMPANION_SAVES / f"{selected_save.rich_name}.sav"
+if new_save_path.exists():
+    st.warning(f"Save file {new_save_path.stem} already exists, want to overwrite ?")
 if st.button("Import Save File"):
     new_save_path = PATH_COMPANION_SAVES / f"{selected_save.rich_name}.sav"
-    if new_save_path.exists():
-        st.warning(
-            f"Save file {new_save_path.stem} already exists, want to overwrite ?"
-        )
-        if not st.button("Overwrite"):
-            st.stop()
     copyfile(selected_save.path, new_save_path)
     st.success(
         "Copied save file to your F1Manager save folder at \n"

@@ -1,3 +1,5 @@
+"""Home Page."""
+
 import streamlit as st
 from common.initialize import init_paths, init_sidebar
 
