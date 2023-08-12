@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
     app:
-        image: josselingirault/joya-f1m-buddy:latest
+        image: josselingirault/f1manager-companion:latest
         volumes:
         -   /C/Users/josselin/AppData/Local/F1Manager23/Saved/SaveGames:/usr/home/project/saves
-        -   \\wsl$\Ubuntu\home\jo\f1manager_db_editor\f1m_companion:/usr/home/project/f1m_companion
+        -   \\wsl$\Ubuntu\home\jo\f1manager_companion\f1m_companion:/usr/home/project/f1m_companion
         ports:
         -   8501:8501
