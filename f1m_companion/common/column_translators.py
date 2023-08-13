@@ -30,6 +30,7 @@ class ColumnTranslator:
         func: function to generate translation
     """
 
+    table_prefix: str
     id_col: str
     foreign_table_name: str
     foreign_id_col: str
@@ -42,11 +43,33 @@ class ColumnTranslator:
 
 
 CONFIG_COLUMN_TRANSLATORS = [
+    # ColumnTranslator("Board", "", "Board_Enum_BoardPerformance", "Value", "Name", None),
+    # ColumnTranslator("Board", "", "Board_Enum_ConfidenceLevels", "Value", "Name", None),
     ColumnTranslator(
-        "StaffID", "Staff_BasicData", "StaffID", "FullName", extract_full_name
+        "Board", "State", "Board_Enum_ObjectiveStates", "Value", "Name", None
     ),
     ColumnTranslator(
-        "StatID", "Staff_Enum_PerformanceStatTypes", "Value", "Name", None
+        "Board", "Type", "Board_Enum_ObjectiveTypes", "Value", "Name", None
     ),
+    # ColumnTranslator("Board", "", "Board_Enum_ConfidenceLevels", "Value", "Name", None),
+    # ColumnTranslator("Board", "", "Board_Enum_ConfidenceLevels", "Value", "Name", None),
+    ColumnTranslator(
+        "Building", "EffectID", "Building_Enum_Effects", "Effect", "Name", None
+    ),
+    ColumnTranslator("Building", "", "Building_Enum_States", "State", "Name", None),
+    ColumnTranslator("Building", "Type", "Building_Enum_Types", "Type", "Name", None),
+    ColumnTranslator("Building", "", "Building_Furbishment", "Value", "Name", None),
+    ColumnTranslator(
+        "Staff", "StaffID", "Staff_BasicData", "StaffID", "FullName", extract_full_name
+    ),
+    ColumnTranslator(
+        "Staff", "StatID", "Staff_Enum_PerformanceStatTypes", "Value", "Name", None
+    ),
+    # ColumnTranslator("TrackID", "", "TrackID", "", None),
 ]
-column_translators = {x.id_col: x for x in CONFIG_COLUMN_TRANSLATORS}
+
+
+COLUMN_TRANSLATORS: tp.Dict[str, tp.Dict[str, ColumnTranslator]] = {}
+for col_tl in CONFIG_COLUMN_TRANSLATORS:
+    COLUMN_TRANSLATORS.setdefault(col_tl.table_prefix, {})
+    COLUMN_TRANSLATORS[col_tl.table_prefix][col_tl.id_col] = col_tl

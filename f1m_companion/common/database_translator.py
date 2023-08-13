@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from common.column_translators import column_translators
+from common.column_translators import COLUMN_TRANSLATORS
 from common.constants import FAKE_PATH_F1M, PATH_COMPANION_TABLES, PATH_SAVES
 
 
@@ -36,13 +36,18 @@ def translate_db_ids(
         dataframe with temporary translated columns.
     """
     dataframe = tables[selected_table].copy(deep=True)
+    table_prefix = selected_table.split("_")[0]
+    table_col_translators = COLUMN_TRANSLATORS.get(
+        table_prefix, COLUMN_TRANSLATORS.get(table_prefix[:-1], {})
+    )
+
     id_columns: tp.List[str] = [
-        col for col in dataframe.columns if col in column_translators
+        col for col in dataframe.columns if col in table_col_translators
     ]
     id_cols: tp.List[str] = []
     tmp_cols: tp.List[str] = []
     for id_col in id_columns:
-        translator = column_translators.get(id_col)
+        translator = table_col_translators.get(id_col)
         if translator is None or selected_table == translator.foreign_table_name:
             continue
 
@@ -55,7 +60,7 @@ def translate_db_ids(
         )
         tl_cols = [translator.id_col, translator.tmp_col]
         foreign_df = foreign_df[tl_cols]
-        dataframe = dataframe.merge(foreign_df, on=translator.id_col)
+        dataframe = dataframe.merge(foreign_df, on=translator.id_col, how="outer")
         tmp_cols.append(translator.tmp_col)
         id_cols.append(translator.id_col)
 
