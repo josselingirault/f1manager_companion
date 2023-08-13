@@ -1,12 +1,14 @@
 # JoyA's F1Manager Companion
 
-JoyA's F1Manager Companion is a small app designed to enhance the experience playing F1Manager. The first version only includes a Database Editor, but a lot more is planned.
+JoyA's F1Manager Companion is a small app designed to enhance the experience playing F1Manager.
 
-:warning: This is really early in the project, expect bugs and a lot of memory usage
+The first version only includes a Database Editor: it allows you to edit eveything in the database, with a few convenience features. A lot more coming !
+
+:warning: This is early in the project, expect bugs and a lot of memory usage
 
 ## How to use
 
-:warning: tested on windows only
+:warning: tested on Windows 10 for F1Manager 23 only
 
 ### Requirements
 - install Docker Desktop https://www.docker.com/products/docker-desktop/
@@ -35,4 +37,7 @@ JoyA's F1Manager Companion is a small app designed to enhance the experience pla
 ## FAQ
 
 #### Why Docker ? It uses so much memory
-Thanks to using Docker, no one has to worry about having the correct version of python or whatever installed. But I also need to work on trimming the image a bit :)
+Thanks to using Docker, no one has to worry about having the correct version of python or whatever installed. It's also a tool I use everyday at work while I've got no idea how to package a javascript app. But I agrre I also need to work on minimizing the size :)
+
+### I've got problems with the amount of memory the app takes, for real though
+Look up https://learn.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig

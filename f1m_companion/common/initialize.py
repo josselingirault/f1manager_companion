@@ -12,8 +12,10 @@ def init_paths():
         path.mkdir(exist_ok=True)
 
 
-def init_sidebar():
+def init_page():
     """Initialize the pages with the sidebar."""
+    st.set_page_config(layout="wide")
+
     with st.sidebar:
         st.title("Settings")
         st.session_state.display_help = st.checkbox("Display help", value=True)

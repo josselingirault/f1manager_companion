@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from common.column_translators import column_translators
-from common.constants import PATH_COMPANION, PATH_COMPANION_TABLES
+from common.constants import FAKE_PATH_F1M, PATH_COMPANION_TABLES, PATH_SAVES
 
 
 @dataclass
@@ -94,4 +94,4 @@ class TranslatedDatabase:
         folder_path.mkdir(exist_ok=True)
         path = (folder_path / table_name).with_suffix(".csv")
         self.clean_table(table_name).to_csv(path, index=False)
-        return path.relative_to(PATH_COMPANION)
+        return FAKE_PATH_F1M / path.relative_to(PATH_SAVES)

@@ -4,11 +4,11 @@ from shutil import copyfile
 
 import streamlit as st
 from common.components import selectbox_with_default
-from common.constants import PATH_COMPANION_SAVES, PATH_SAVES
-from common.initialize import init_sidebar
+from common.constants import FAKE_PATH_F1M, PATH_COMPANION_SAVES, PATH_SAVES
+from common.initialize import init_page
 from common.savefile import OriginalSaveFile
 
-init_sidebar()
+init_page()
 
 st.title("Import Save Files")
 if st.session_state.display_help:
@@ -17,15 +17,14 @@ if st.session_state.display_help:
             """
             1. Select the save file your want to import
             2. Click on the import save file button
-            3. Companion renamed the file with a more explicit name
+            3. Save file imported ! Companion also renamed the file with a more explicit name
             """
         )
 
-save_files = OriginalSaveFile.list_save_files()
+save_files = OriginalSaveFile.dict_save_files()
 st.info(f"Listed {len(save_files)} save files in SaveGames folder.")
-selected_save = selectbox_with_default("Pick save file to import", save_files)
-if selected_save is None:
-    st.stop()
+selected_save_name = selectbox_with_default("Pick save file to import", save_files)
+selected_save = save_files[selected_save_name]
 
 new_save_path = PATH_COMPANION_SAVES / f"{selected_save.rich_name}.sav"
 if new_save_path.exists():
@@ -34,6 +33,5 @@ if st.button("Import Save File"):
     new_save_path = PATH_COMPANION_SAVES / f"{selected_save.rich_name}.sav"
     copyfile(selected_save.path, new_save_path)
     st.success(
-        "Copied save file to your F1Manager save folder at \n"
-        f"{new_save_path.relative_to(PATH_SAVES)}"
+        f"Copied save file to {FAKE_PATH_F1M / new_save_path.relative_to(PATH_SAVES)}"
     )

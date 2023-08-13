@@ -1,13 +1,14 @@
 """Page for the Advanced Editor."""
+import typing as tp
+
+import pandas as pd
 import streamlit as st
 from common.components import selectbox_with_default
 from common.database_translator import TranslatedDatabase
-from common.initialize import init_sidebar
+from common.initialize import init_page
 from common.savefile import CompanionSaveFile
 
-st.set_page_config(layout="wide")
-
-init_sidebar()
+init_page()
 
 # Page script
 if st.session_state.display_help:
@@ -23,78 +24,83 @@ if st.session_state.display_help:
             """
         )
 
-save_files = CompanionSaveFile.list_save_files()
+save_files = CompanionSaveFile.dict_save_files()
 st.info(f"Listed {len(save_files)} save files in companion folder.")
-selected_save = selectbox_with_default("Select Save File to edit", save_files)
-# if selected_save is None:
-#     st.stop()
+selected_save_name = selectbox_with_default("Select Save File to edit", save_files)
+selected_save = save_files[selected_save_name]
 
 # Only one unpacked save in the session_state at a time
-# If you navigate out the page then come back, must keep the changes, so:
+# If you navigate out the page then come back, must keep the changes, so
 # We need to store the translated tables in the session_state
-# and load them from session_state only when
-# - there exist translated_dataframes in session_state
-# - the selected_save.name is the same as the save name in session_state
 
 translated_database: TranslatedDatabase
+edited_tables: tp.Dict[str, pd.DataFrame]
 key_save_name = "key_save_name"
 key_translated_database = "key_translated_database"
+key_set_edited_tables = "key_set_edited_tables"
 key_edited_tables = "key_edited_tables"
+key_origin_tables = "key_origin_tables"
+
 if (
-    key_translated_database in st.session_state
-    and st.session_state[key_save_name] == selected_save.name
+    key_translated_database not in st.session_state
+    or selected_save.name != st.session_state[key_save_name]
 ):
-    translated_database = st.session_state[key_translated_database]
-else:
+    # When first render or selected save changes
+    # - Extract table from the save
+    # - Reset the edited_tables session_state
     st.session_state[key_save_name] = selected_save.name
-    st.session_state[key_edited_tables] = set()
     tables = selected_save.extract_tables()
-    translated_database = TranslatedDatabase(tables)
+    st.session_state[key_translated_database] = TranslatedDatabase(tables)
+    st.session_state[key_edited_tables] = {}
+
+translated_database = st.session_state[key_translated_database]
+edited_tables = st.session_state[key_edited_tables]
 
 selected_table_name = selectbox_with_default(
     "Select Table to edit", translated_database.tables
 )
-# if selected_table_name is None:
-#     st.stop()
 
 selected_table = translated_database.tables[selected_table_name]
-edited_dataframe = st.data_editor(
+df = st.data_editor(
     selected_table.dataframe,
     disabled=selected_table.disabled_cols,
     hide_index=True,
 )
-if not edited_dataframe.equals(selected_table.dataframe):
-    st.session_state[key_edited_tables].add(selected_table_name)
-    selected_table.dataframe = edited_dataframe
 
-st.session_state[key_translated_database] = translated_database
+if not df.equals(selected_table.dataframe):
+    edited_tables[selected_table_name] = df
 
-if st.session_state[key_edited_tables]:
-    st.info(f"You've edited the tables {st.session_state[key_edited_tables]}")
+if edited_tables:
+    st.info(f"You've edited the tables {sorted(edited_tables)}")
 else:
     st.info("No changes made.")
     st.stop()
 
+if st.button("Apply changes"):
+    for table_name, table in edited_tables.items():
+        translated_database.tables[table_name].dataframe = table
+    st.session_state[key_edited_tables] = {}
+    del edited_tables
+    st.success("Applied changes ! ")
+
 col1, col2 = st.columns(2)
 
-with col1:
-    st.subheader("Save all changes and repack to a save file")
+with col2:
+    st.subheader("Repack to a save file")
     new_save_name = st.text_input(
         "File name for the repacked save", selected_save.name + "_edited"
     )
-    if st.button("Apply changes and repack file"):
+    if st.button("Repack file"):
         new_path = selected_save.repack(
             new_save_name, translated_database.clean_tables()
         )
         st.success(f"Saved edited save file to {new_path}")
 
-with col2:
-    st.subheader("Save a single edited table")
+with col1:
+    st.subheader("Save a single table to a csv file")
     selected_edited_table = selectbox_with_default(
         "Select table to save", st.session_state[key_edited_tables]
     )
-    # if selected_edited_table is None:
-    #     st.stop()
     tables_folder = st.text_input("Folder", "my_custom_tables")
     if st.button("Save edited table as csv"):
         export_path = translated_database.table_to_csv(

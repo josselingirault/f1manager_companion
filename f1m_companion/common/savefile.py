@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 import pendulum
 
-from common.constants import PATH_COMPANION_SAVES, PATH_SAVES
+from common.constants import FAKE_PATH_F1M, PATH_COMPANION_SAVES, PATH_SAVES
 from common.xaranaktu.unpacking import process_repack, process_unpack
 
 
@@ -63,7 +63,7 @@ class SaveFile(ABC):
                 sql_conn.commit()
                 new_path = (PATH_SAVES / target_stem).with_suffix(".sav")
                 process_repack(tmp_dir, new_path)
-        return new_path.relative_to(PATH_SAVES)
+        return FAKE_PATH_F1M / new_path.relative_to(PATH_SAVES)
 
     @property
     def rich_name(self) -> str:
@@ -104,7 +104,7 @@ class SaveFile(ABC):
                     elements = [save_type, team, day, track, session, seed]
                 except IndexError:
                     elements = [save_type, team, day, "track", "session", seed]
-        return "__".join(elements)
+        return "__".join(elements).replace(" ", "_")
 
     def extract_tables(self) -> tp.Dict[str, pd.DataFrame]:
         """Extract list of table names from save file.
@@ -129,6 +129,11 @@ class SaveFile(ABC):
     def list_save_files(cls) -> tp.List[tp.Self]:
         """Instanciate a SaveFile for each save file found."""
         return [cls(x) for x in cls.saves_path.glob("*.sav")]
+
+    @classmethod
+    def dict_save_files(cls) -> tp.Dict[str, tp.Self]:
+        """Instanciate a SaveFile for each save file found."""
+        return {x.name: x for x in cls.list_save_files()}
 
 
 class OriginalSaveFile(SaveFile):
