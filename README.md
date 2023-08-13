@@ -2,9 +2,15 @@
 
 JoyA's F1Manager Companion is a small app designed to enhance the experience playing F1Manager.
 
-The first version only includes a Database Editor: it allows you to edit eveything in the database, with a few convenience features. A lot more coming !
-
 :warning: This is early in the project, expect bugs and a lot of memory usage
+
+## What can it do ?
+
+The first version only includes a Database Editor: it allows you to edit eveything in the database, as well as load edited tables from another modder into your own save !
+
+Here's what one of the pages look like:
+
+![the advanced editor](/assets/advanced.png)
 
 ## How to use
 
