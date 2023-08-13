@@ -13,8 +13,8 @@ st.markdown(
     The F1Manager Companion is a small app designed to enhance the experience playing F1Manager.
 
     - File Manager: import your save files into Companion
-    - Simple Editor: edit your save by simply replacing database tables !
-    - Advanced Editor: edit your save in a more complex editor
+    - Simple Editor: edit your saves by simply importing pre-edited tables
+    - Advanced Editor: edit your saves in a full, more complex editor
         - :warning: ID translation only works for a few tables
 
     :warning: This is an early version, expect bugs and a lot of memory usage.
