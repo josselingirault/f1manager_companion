@@ -60,7 +60,7 @@ def translate_db_ids(
         )
         tl_cols = [translator.id_col, translator.tmp_col]
         foreign_df = foreign_df[tl_cols]
-        dataframe = dataframe.merge(foreign_df, on=translator.id_col, how="outer")
+        dataframe = dataframe.merge(foreign_df, on=translator.id_col)
         tmp_cols.append(translator.tmp_col)
         id_cols.append(translator.id_col)
 

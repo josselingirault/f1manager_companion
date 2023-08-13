@@ -11,14 +11,20 @@ from common.savefile import CompanionSaveFile
 init_page()
 
 # Page script
+st.title("Simple Editor")
+
+st.write(
+    "Overwrite tables in your save with csv files you or the community have created."
+)
+
 if st.session_state.display_help:
     with st.expander("How does it work?"):
         st.markdown(
             """
                 1. Select the save file your want to edit
-                2. Select the table your want to edit
-                3. Edit the values you want (some columns are uneditable)
-                4. Chose name for edited save file
+                2. Select the folder of csv files you want to apply to your save
+                3. Pick the tables you want to overwrite in your save
+                4. Choose name for the repacked save
                 5. Click apply
                 6. Load your save in F1Manager !
             """
@@ -30,7 +36,7 @@ selected_save_name = selectbox_with_default("Select Save File to edit", save_fil
 selected_save = save_files[selected_save_name]
 
 table_sets = [x.stem for x in PATH_COMPANION_TABLES.glob("*")]
-selected_table_set = selectbox_with_default("Select set of tables to apply", table_sets)
+selected_table_set = selectbox_with_default("Select folder of csv files", table_sets)
 
 path_table_set = PATH_COMPANION_TABLES / selected_table_set
 table_names = [x.stem for x in path_table_set.glob("*")]
@@ -43,8 +49,8 @@ selected_tables = [k for k, v in checkboxes.items() if v]
 tables = {t: pd.read_csv(path_table_set / f"{t}.csv") for t in selected_tables}
 
 new_save_name = st.text_input(
-    "File name for the repacked save", selected_save.name + "_edited"
+    "Choose name for the repacked save", selected_save.name + "_edited"
 )
 if st.button("Apply changes and repack file"):
     new_path = selected_save.repack(new_save_name, tables)
-    st.success(f"Saved edited save file to {new_path}")
+    st.success(f"Saved save file to {new_path}")

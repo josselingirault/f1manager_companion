@@ -14,7 +14,8 @@ st.markdown(
 
     - File Manager: import your save files into Companion
     - Simple Editor: edit your save by simply replacing database tables !
-    - Advanced Editor: edit your save in a more a more complex editor
+    - Advanced Editor: edit your save in a more complex editor
+        - :warning: ID translation only works for a few tables
 
     :warning: This is an early version, expect bugs and a lot of memory usage.
 

@@ -11,6 +11,10 @@ from common.savefile import OriginalSaveFile
 init_page()
 
 st.title("Import Save Files")
+st.write(
+    "Import your save files from the F1Manager folder so the Companion can recognize them."
+)
+
 if st.session_state.display_help:
     with st.expander("How does it work?"):
         st.markdown(

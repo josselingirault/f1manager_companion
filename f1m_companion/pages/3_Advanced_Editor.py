@@ -10,6 +10,10 @@ from common.savefile import CompanionSaveFile
 
 init_page()
 
+st.title("Advanced Editor")
+
+st.write("Edit the tables in your save.")
+
 # Page script
 if st.session_state.display_help:
     with st.expander("How does it work?"):
@@ -18,9 +22,16 @@ if st.session_state.display_help:
                 1. Select the save file your want to edit
                 2. Select the table your want to edit
                 3. Edit the values you want (some columns are uneditable)
-                4. Chose name for edited save file
-                5. Click apply
-                6. Load your save in F1Manager !
+                4. Click Apply changes (:warning: If you leave this page without applying, changes will be lost)
+                5. Repack to a save file
+                    1. Chose name for edited save file
+                    2. Click repack
+                6. Save a single table
+                    1. Chose table to save as csv
+                    2. Chose name of folder where to save sav
+                    3. Click save
+                    4. You can now use those csv files to edit tables in the simple editor
+                7. Load your save in F1Manager !
             """
         )
 
@@ -77,8 +88,6 @@ else:
 if st.button("Apply changes"):
     for table_name, table in edited_tables.items():
         translated_database.tables[table_name].dataframe = table
-    st.session_state[key_edited_tables] = {}
-    del edited_tables
     st.success("Applied changes ! ")
 
 col1, col2 = st.columns(2)
@@ -86,22 +95,22 @@ col1, col2 = st.columns(2)
 with col2:
     st.subheader("Repack to a save file")
     new_save_name = st.text_input(
-        "File name for the repacked save", selected_save.name + "_edited"
+        "Choose name for the repacked save", selected_save.name + "_edited"
     )
-    if st.button("Repack file"):
+    if st.button("Repack save"):
         new_path = selected_save.repack(
             new_save_name, translated_database.clean_tables()
         )
-        st.success(f"Saved edited save file to {new_path}")
+        st.success(f"Saved save file to {new_path}")
 
 with col1:
-    st.subheader("Save a single table to a csv file")
+    st.subheader("Save a single table as a csv file")
     selected_edited_table = selectbox_with_default(
         "Select table to save", st.session_state[key_edited_tables]
     )
-    tables_folder = st.text_input("Folder", "my_custom_tables")
-    if st.button("Save edited table as csv"):
+    tables_folder = st.text_input("Choose folder name", "my_custom_tables")
+    if st.button("Save table as csv"):
         export_path = translated_database.table_to_csv(
             selected_edited_table, tables_folder
         )
-        st.success(f"Saved edited table to {export_path}")
+        st.success(f"Saved table to {export_path}")
