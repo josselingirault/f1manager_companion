@@ -37,9 +37,7 @@ translated_database: TranslatedDatabase
 edited_tables: tp.Dict[str, pd.DataFrame]
 key_save_name = "key_save_name"
 key_translated_database = "key_translated_database"
-key_set_edited_tables = "key_set_edited_tables"
 key_edited_tables = "key_edited_tables"
-key_origin_tables = "key_origin_tables"
 
 if (
     key_translated_database not in st.session_state

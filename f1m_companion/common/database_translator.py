@@ -59,7 +59,12 @@ def translate_db_ids(
         tmp_cols.append(translator.tmp_col)
         id_cols.append(translator.id_col)
 
-    return TranslatedTable(dataframe.sort_values(id_columns), tmp_cols, id_cols)
+    cols = [x for x in dataframe.columns if x not in id_cols + tmp_cols]
+    ordered_cols = id_cols + tmp_cols + cols
+
+    return TranslatedTable(
+        dataframe.sort_values(id_columns)[ordered_cols], tmp_cols, id_cols
+    )
 
 
 class TranslatedDatabase:
